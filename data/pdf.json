@@ -1,0 +1,976 @@
+{
+  "code": 200,
+  "data": [
+    {
+      "page": 0,
+      "width": 621,
+      "height": 877,
+      "boxes": [
+        {
+          "bbox": [
+            79,
+            65,
+            547,
+            595
+          ],
+          "text": "CAKE: A Scalable Commonsense-Aware Framework For Multi-ViewKnowledge Graph CompletionGuanglin Niu1,2, Bo Li2,3, Yongfei Zhang1, Shiliang Pu41 Beijing Key Laboratory of Digital Media, Beihang University, Beijing, China2 Institute of Artiﬁcial Intelligence, Beihang University, Beijing, China3 Hangzhou Innovation Institute, Beihang University, Hangzhou, China4Hikvision Research Institute, Hangzhou, China{beihangngl, boli, yfzhang}@buaa.edu.cn, pushiliang.hri@hikvision.comAbstractPositive triple:(Los Angeles, LocatedIn, California)(Los Angeles, LocatedIn, California)Negative samplingKnowledge graphs store a large number ofHigh-quality negative triple:(Los Angeles, LocatedIn, (Los Angeles, LocatedIn, GeorgiaGeorgia))((San FranciscoSan Francisco, LocatedIn, California), LocatedIn, California)factual triples while they are still incomplete, inevitably.False-negative triples:((Apple Inc.Apple Inc., LocatedIn, California), LocatedIn, California)The previous knowledge(Los Angeles, LocatedIn, (Los Angeles, LocatedIn, Apple PieApple Pie))graph completion (KGC) models predict missing links between entities merely relying onLow-quality negative triples: ((EnglishEnglish, LocatedIn, California), LocatedIn, California)Challenge 1: Invalid Negative Samplingfact-view data, ignoring the valuable commonsense knowledge.Query:Query:(David, Nationality, ?)(David, Nationality, ?)(David, Nationality, ?)belongs toCountryCorrect triple:Correct triple:(David, Nationality, U.S.A.)(David, Nationality, U.S.A.)(David, Nationality, U.S.A.)The previous knowledge graph embedding (KGE) techniques suffer from invalid negative sampling and theU.S.A.Rank:CommonsenseCalifornia11CaliforniaCaliforniaUnsatisfy||eDavid+rNationality-eCalifornia|| 2U.S.A.Satisfyuncertainty of fact-view link prediction, limiting KGC’s performance.To address theDavid< ||eDavid+rNationality-eU.S.A.||3...CanadaSatisfyChallenge 2: Uncertainty of Fact-View Link Predictionabove challenges, we propose a novel andscalable Commonsense-Aware KnowledgeFigure 1: Two examples exhibit the challenges thatEmbedding (CAKE) framework to automatically extract commonsense from factual triplesneeded to be addressed. Challenge 1: Given a positive triple, some generated negative triples are falsenegative or low-quality.with entity concepts. The generated commonsense augments effective self-supervision to Challenge 2 California: For link prediction, the entityfacilitate both high-quality negative sampling ranks higher than the correct entity(NS) and joint commonsense and fact-view U.S.A. due to the uncertainty of KG embeddings, but the correct answer entity should belong tolink prediction. Experimental results on thethe concept Country in the view of commonsense.KGC task demonstrate that assembling ourframework could enhance the performance ofthe original KGE models, and the proposedmodels mine logic rules for induction reasoning, such as AMIE+ (commonsense-aware NS module is superior toGalárraga et al., 2015other NS techniques. Besides, our proposedDRUM (Sadeghian et al., 2019) and AnyBurl (framework could be easily adaptive to variousMeilicke et al.KGE models and explain the predicted results., 2019). (2) Path-based models (Liu et al.2020; Xiong et al., 2017; Lin et al., 2018) search",
+          "type": "Header",
+          "index": 0,
+          "score": 0.95166015625,
+          "contain_formula": false,
+          "font_size": 8.476447105407715,
+          "font_name": "TimesNewRomanPSMT"
+        },
+        {
+          "bbox": [
+            310,
+            216,
+            555,
+            506
+          ],
+          "text": "Positive triple:(Los Angeles, LocatedIn, California)(Los Angeles, LocatedIn, California)Negative samplingHigh-quality negative triple:(Los Angeles, LocatedIn, (Los Angeles, LocatedIn, GeorgiaGeorgia))((San FranciscoSan Francisco, LocatedIn, California), LocatedIn, California)False-negative triples:((Apple Inc.Apple Inc., LocatedIn, California), LocatedIn, California)(Los Angeles, LocatedIn, (Los Angeles, LocatedIn, Apple PieApple Pie))Low-quality negative triples: ((EnglishEnglish, LocatedIn, California), LocatedIn, California)Challenge 1: Invalid Negative SamplingQuery:Query:(David, Nationality, ?)(David, Nationality, ?)(David, Nationality, ?)belongs toCountryCorrect triple:Correct triple:(David, Nationality, U.S.A.)(David, Nationality, U.S.A.)(David, Nationality, U.S.A.)U.S.A.Rank:CommonsenseCalifornia11CaliforniaCaliforniaUnsatisfy||eDavid+rNationality-eCalifornia|| 2U.S.A.SatisfyDavid< ||eDavid+rNationality-eU.S.A.||3...CanadaSatisfyChallenge 2: Uncertainty of Fact-View Link PredictionFigure 1: Two examples exhibit the challenges thatneeded to be addressed. Challenge 1: Given a positive triple, some generated negative triples are falsenegative or low-quality. Challenge 2 California: For link prediction, the entity ranks higher than the correct entity U.S.A. due to the uncertainty of KG embeddings, but the correct answer entity should belong tothe concept Country in the view of commonsense.",
+          "type": "Figure",
+          "index": 1,
+          "score": 0.94970703125,
+          "contain_formula": false,
+          "font_size": 7.10465145111084,
+          "font_name": "TimesNewRomanPSMT"
+        },
+        {
+          "bbox": [
+            71,
+            595,
+            164,
+            617
+          ],
+          "text": "1Introduction",
+          "type": "Title",
+          "index": 2,
+          "score": 0.89013671875,
+          "contain_formula": false,
+          "font_size": 11.9552001953125,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            69,
+            620,
+            306,
+            810
+          ],
+          "text": "In recent years, knowledge graphs (KGs) suchas Freebase (Bollacker et al., 2008Lehmann et al., 2015), DBpedia () and NELL (Mitchellet al., 2018) have been widely used in manyknowledge-intensive applications, including question answering (Sun et al., 2020; Saxena et al.,2020), dialogue systems (Yang et al., 2020; Zhouet al., 2018) and recommender systems (Wang et al.,2021, 2019a). However, the KGs constructed manually or automatically are inevitably incomplete,requiring KGC to infer new facts.The previous KGC models can be classiﬁedinto three main streams: (1) Rule learning-based",
+          "type": "Text",
+          "index": 3,
+          "score": 0.95654296875,
+          "contain_formula": false,
+          "font_size": 10.968130111694336,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            314,
+            522,
+            554,
+            809
+          ],
+          "text": "models mine logic rules for induction reasoning, such as AMIE+ (Galárraga et al., 2015),DRUM (Sadeghian et al., 2019) and AnyBurl (Meilicke et al., 2019). (2) Path-based models (Liu et al.,2020; Xiong et al., 2017; Lin et al., 2018) searchpaths for multi-hop reasoning. (3) KGE modelssuch as TransE (Bordes et al., 2013) and its variants (Sun et al., 2019; Zhang et al., 2019a, 2020)learn the embeddings of entities and relations toscore the plausibility of triples for link prediction.Among all the existing KGC models, KGEapproaches achieve higher efﬁciency and betterperformance. Speciﬁcally, the KGE-based KGCpipeline can be divided into two stages: learningknowledge graph (KG) embeddings at the trainingand link prediction at the inference. Learning KGembeddings relies on a basic procedure of negativesampling (Li et al., 2021). Link prediction aims toinfer the missing entity or relation in a triple viaranking the candidate triples’ scores in virtue of the",
+          "type": "Text",
+          "index": 4,
+          "score": 0.962890625,
+          "contain_formula": false,
+          "font_size": 10.950942039489746,
+          "font_name": "NimbusRomNo9L-Regu"
+        }
+      ]
+    },
+    {
+      "page": 1,
+      "width": 621,
+      "height": 877,
+      "boxes": [
+        {
+          "bbox": [
+            315,
+            468,
+            417,
+            488
+          ],
+          "text": "2Related Work",
+          "type": "Title",
+          "index": 2,
+          "score": 0.85498046875,
+          "contain_formula": false,
+          "font_size": 11.9552001953125,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            316,
+            489,
+            413,
+            508
+          ],
+          "text": "2.1KGC Models",
+          "type": "Title",
+          "index": 3,
+          "score": 0.8798828125,
+          "contain_formula": false,
+          "font_size": 10.909099578857422,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            67,
+            67,
+            308,
+            811
+          ],
+          "text": "learned KG embeddings.However, the two separate stages both have drawbacks: (1) Invalid negative sampling: all theprevious NS (Wang et al., 2014; Cai and Wang,2018; Sun et al., 2019; Denis et al. Zhang et al., 2019b;, 2015) cannot avoid sampling the falsenegative triples and low-quality negative triples,simultaneously. For instance, given the positivetriple (Los Angeles, LocatedIn, California)as shown in Figure 1, the existing NS strategies might sample the corrupted triples suchas (San Francisco, LocatedIn, California),which is actually a missing correct triple namelyfalse-negative triple. On the other hand, the quality of some generated negative triples such as(San Francisco, LocatedIn, Apple Pie) is toopoor to make little sense for training the KGEmodels. (2) Uncertainty of fact-view link prediction: performing link prediction solely basedon facts in a data-driven fashion suffers from uncertainty due to the deviation of KG embeddingscompared to the symbolic representations, limiting the accuracy of KGC. Take the tail entity prediction (David, Nationality, ?) in Figure 1 as aninstance. The correct tail entity should belong tothe concept Country in the view of commonsense.Whereas the entity California that is inconsistentwith commonsense even ranks highest via scoringthe candidate triples with KG embeddings.Last but not least, although some KGE approaches exploit external information, includingentity types (Xie et al., 2016b), textual descriptions (Xie et al., 2016a) and images of entities (Xieet al., 2017). Such auxiliary information is hard toaccess and enhances the single representation ofentities rather than providing the semantics of commonsense. However, the valuable commonsenseis always acquired by the expensive hand annotation (Rajani et al., 2019), so its high cost leadsto relatively low coverage. Besides, the existinglarge-scale commonsense KGs such as ConceptNet (Speer et al., 2017) only contain the conceptswithout the links to the corresponding entities, causing them unavailable to the KGC task.To address the above challenges, we propose a novel and scalable Commonsense-AwareKnowledge Embedding (CAKE) framework to improve the NS in the training of KGE and boostthe performance of KGC beneﬁted from the selfsupervision of commonsense. In speciﬁc, we attempt to automatically construct explicit common-",
+          "type": "Text",
+          "index": 0,
+          "score": 0.9599609375,
+          "contain_formula": false,
+          "font_size": 10.948596000671387,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            315,
+            73,
+            555,
+            466
+          ],
+          "text": "sense via an instance abstraction technique fromKGs. Then, contrary to random sampling, we purposefully generate the high-quality negative triplesby taking advantage of the commonsense togetherwith the characteristics of complex relations. Furthermore, a multi-view link prediction is conductedto determine the entity candidates that belong tothe correct concepts in the commonsense view andpredict the answer entities with the learned KG embeddings from the perspective of fact. In summary,the contributions of our work are three-fold:• We propose a scalable KGC frameworkwith an automatic commonsense generation mechanism to extract valuable commonsense from factual triples and entity concepts.• We develop a commonsense-aware negativesampling strategy for generating valid andhigh-quality negative triples.Meanwhile,a multi-view link prediction mechanism isproposed to improve the accuracy of KGC.• Extensive experiments on four benchmarkdatasets illustrate the effectiveness and thescalability of our whole framework and eachmodule.The source code and datasets ofthis paper can be obtained from https://github.com/ngl567/CAKE.",
+          "type": "Text",
+          "index": 1,
+          "score": 0.96728515625,
+          "contain_formula": false,
+          "font_size": 10.92646598815918,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            315,
+            510,
+            555,
+            810
+          ],
+          "text": "The existing KGC models can be classiﬁed intothree main categories: (1) Rule learning-based algorithms such as AMIE+ (Galárraga et al., 2015),DRUM (Sadeghian et al., 2019) and AnyBurl (Meilicke et al., 2019) automatically mine logic rulesfrom KGs and apply these rules for inductive linkprediction. However, these models are inefﬁcientdue to the time-consuming rule searching and evaluation. (2) Path-based models search paths linkingLao et al., 2011head and tail entities, including path ranking approaches (; Liu et al., 2020) andreinforcement learning-based models (Xiong et al.,2017; Lin et al., 2018). Whereas, multi-hop pathbased models also spend much time in path searching. (3) KG embedding (KGE) models such asTransE (Bordes et al., 2013), RESCAL (Nickelet al., 2011), ComplEx (Trouillon et al., 2016), RotatE (Sun et al., 2019) and HAKE (Zhang et al.,2020) learn the embeddings of entities and relations to score the plausibility of triples for predicting the missing triples efﬁciently. KGE approaches",
+          "type": "Text",
+          "index": 4,
+          "score": 0.96337890625,
+          "contain_formula": false,
+          "font_size": 10.948226928710938,
+          "font_name": "NimbusRomNo9L-Regu"
+        }
+      ]
+    },
+    {
+      "page": 2,
+      "width": 621,
+      "height": 877,
+      "boxes": [
+        {
+          "bbox": [
+            71,
+            198,
+            234,
+            222
+          ],
+          "text": "2.2Negative Sampling of KGE",
+          "type": "Title",
+          "index": 1,
+          "score": 0.880859375,
+          "contain_formula": false,
+          "font_size": 10.909099578857422,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            316,
+            69,
+            510,
+            92
+          ],
+          "text": "2.3Commonsense Knowledge Graph",
+          "type": "Title",
+          "index": 3,
+          "score": 0.86767578125,
+          "contain_formula": false,
+          "font_size": 10.909099578857422,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            315,
+            382,
+            411,
+            405
+          ],
+          "text": "3Methodology",
+          "type": "Title",
+          "index": 5,
+          "score": 0.88818359375,
+          "contain_formula": false,
+          "font_size": 11.9552001953125,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            316,
+            713,
+            532,
+            735
+          ],
+          "text": "3.1Notations and Problem Formalization",
+          "type": "Title",
+          "index": 7,
+          "score": 0.849609375,
+          "contain_formula": false,
+          "font_size": 10.909099578857422,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            69,
+            72,
+            306,
+            193
+          ],
+          "text": "achieve higher efﬁciency and better performance onKGC compared with the others. However, the natural uncertainty of embeddings limits the precisionof KGC relying solely on facts. More speciﬁcally,the KGE models generally need a primary negativesampling (NS) procedure to randomly or purposelysample some triples that are not observed in theKG as negative triples for training (Li et al., 2021).",
+          "type": "Text",
+          "index": 0,
+          "score": 0.9482421875,
+          "contain_formula": false,
+          "font_size": 10.860613822937012,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            68,
+            225,
+            307,
+            809
+          ],
+          "text": "Following the local closed-world assumption(Dong et al., 2014), the existing NS techniques forKGE can be classiﬁed into ﬁve categories: (1) Randomly and uniformly sampling: the majority of theKGE models generate negative triples via randomlyreplacing an entity or relation in a positive triplefrom a uniform distribution (Wang et al., 2014).(2) Adversarial-based sampling: KBGAN (Cai andWang, 2018) integrates the KGE model with softmax probabilities to select the high-quality negativetriples in an adversarial training framework. Selfadversarial sampling (Sun et al., 2019) performssimilar to KBGAN, but it utilizes a self-scoringfunction without a generator. (3) Domain-basedsampling: domain-based NS (Wang et al., 2019b)and type-constrained NS (Denis et al., 2015) bothleverage domain or type constraints on samplingthe corrupted entities that belong to the correct domain. (4) Efﬁcient sampling: NSCaching (Zhanget al., 2019b) employs cache containing candidatesof negative triples to improve the efﬁciency of sampling. (5) None-sampling: NS-KGE (Li et al.,2021) eliminates the NS procedure by convertingloss functions of KGE into a uniﬁed square loss.However, all the previous NS algorithms cannot address the issue of false-negative triples sincethese NS techniques, except for none sampling,would attempt to sample the corrupted triples withhigher probability while they might be correct andjust missing in the KG. Domain-based NS reliesheavily on the constraint of the single type ratherthan the commonsense, limiting the diversity ofnegative triples. KBGAN introduces generativeadversarial networks (GAN) in the NS framework,making the original model more complex and hardto train. None sampling eliminates the negativetriples and has to convert each original KGE modelinto square loss, which weakens the performanceof KGE models. These drawbacks of the NS strategies degrade the training of KGE and further limitthe performance of KGC.",
+          "type": "Text",
+          "index": 2,
+          "score": 0.962890625,
+          "contain_formula": false,
+          "font_size": 10.944560050964355,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            315,
+            93,
+            554,
+            379
+          ],
+          "text": "Different from the factual triples, commonsensecould inject rich abstract knowledge into KGs.However, the valuable commonsense is hard toaccess due to the costly hand annotation. In recentyears, many researches attempt to construct generalcommonsense graphs such as ConceptNet (Speeret al., 2017), Microsoft Concept Graph (Ji et al.,2019) and ATOMIC (Sap et al., 2019). However,these commonsense graphs only contain the concepts without the links to the corresponding entities, causing them inapplicable to the KGC task.On the other hand, although some KGE modelssuch as JOIE (Hao et al., 2019) employ the ontology built-in most of the KGs, i.e., NELL (Mitchellet al., 2018) and DBpedia (Lehmann et al., 2015),the relations in ontology such as isA, partOf andrelatedTo mainly represent the type hierarchy butnot the explicit commonsense. Such relations areuseless for KGC because there are few overlapsbetween the ontological and the factual relations.",
+          "type": "Text",
+          "index": 4,
+          "score": 0.96337890625,
+          "contain_formula": false,
+          "font_size": 10.967885971069336,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            315,
+            409,
+            554,
+            709
+          ],
+          "text": "In this section, we introduce our novel and scalableCAKE framework. As shown in Figure 2, the entirepipeline consists of three developed modules: theautomatic commonsense generation (ACG) module, the commonsense-aware negative sampling(CANS) module and the multi-view link prediction (MVLP) module. Firstly, the ACG moduleextracts the commonsense from the factual tripleswith the entity concepts via an instance abstraction mechanism (§ 3.2). Then, the CANS moduleemploys the generated commonsense to producethe high-quality negative triples, which takes thecharacteristics of complex relations into account(§ 3.3). Afterwards, our approach feeds the positive and the weighted negative triples into the KGEmodel for learning entity and relation embeddings(§ 3.4). Finally, the MVLP module conducts linkprediction in a coarse-to-ﬁne fashion by ﬁlteringthe candidates in the view of commonsense andpredicting the answer entities with KG embeddingsfrom the candidates in the view of fact (§ 3.5).",
+          "type": "Text",
+          "index": 6,
+          "score": 0.96337890625,
+          "contain_formula": false,
+          "font_size": 10.950066566467285,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            316,
+            736,
+            552,
+            809
+          ],
+          "text": "Commonsense.Commonsense has gainedwidespread attraction from its successful use inunderstanding high-level semantics, which is generally represented as the concepts with their ontological relations in some well-known commonsense",
+          "type": "Text",
+          "index": 8,
+          "score": 0.927734375,
+          "contain_formula": false,
+          "font_size": 10.933244705200195,
+          "font_name": "NimbusRomNo9L-Regu"
+        }
+      ]
+    },
+    {
+      "page": 3,
+      "width": 621,
+      "height": 877,
+      "boxes": [
+        {
+          "bbox": [
+            62,
+            60,
+            559,
+            259
+          ],
+          "text": "Entity ConceptsStateCommonsenseStateConverterAttentive Concept-to-Entity negative tripleshigh-quality +triplespositive CountryPersonCompanyCityCompanyCitycc22t1t1KGE ModelCaliforniaLos Angelescch11h11r1-1cc11t1t1cc22h1h1r1-Ncccc2222t2t2Fact View:entity and relation ......t3t3embeddingsU.S.A.Facebookcc33h1h1cc44h1h1cc44t1t1scoringscoringfilterfiltercandidate candidate PersonFriendOfCountrycccc3333h2h2rN-1cc33t1t1cccc4444h2h2rN-Ncccc4444t2t2...David......h3h3......h3h3......t3t3Commonsense View:NationalityJackFriendOfTomSelecting Candidate Concepts via PersonCountryFactual KGEntity-to-Concept ConverterCommonsense and Complex RelationQuery:DavidNationality?ACG ModuleCANS ModuleMVLK ModuleFigure 2: An overview of the CAKE framework. The orange dotes indicate the entities. The green dotes representthe entity concepts. In the CANS module,j r1−j1, r1−N, rN−1 and rN−N denote the diverse complex relations of1-1, 1-N, N-1 and N-N, respectively. chi and cti indicate the i-th head concept and tail concept that are selected bythe commonsense and the characteristics of complex relations speciﬁc to the j-th relation.",
+          "type": "Figure",
+          "index": 0,
+          "score": 0.9453125,
+          "contain_formula": false,
+          "font_size": 6.126091957092285,
+          "font_name": "TimesNewRomanPSMT"
+        },
+        {
+          "bbox": [
+            316,
+            525,
+            529,
+            549
+          ],
+          "text": "3.2Automatic Commonsense Generation",
+          "type": "Title",
+          "index": 3,
+          "score": 0.86083984375,
+          "contain_formula": false,
+          "font_size": 10.909099578857422,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            67,
+            272,
+            308,
+            815
+          ],
+          "text": "graphs such as ConceptNet (Speer et al., 2017) andMicrosoft Concept Graph (Ji et al., 2019). Notably,we extend the commonsense in two forms: the individual form C1 and the set form C2. Both C1 and are the sets of triples while each triple in isC2 C1constituted of a head entity’s concept ch and a tailentity’s concept ct associated with their instancelevel relation r, which can be written as follows:(c, r, c)(1)C1 = {ht}On the contrary, each triple in consists of a C2relation r linking the corresponding head conceptset C and tail concept set C, which is shown as:htC2 = {(Ch, r, Ct)}(2)The detailed description of commonsense generation is introduced in section 3.2.KGE Score Function.We could leverage anyKGE model to learn the entity and relation embeddings owing to our scalable framework independent of the KGE model. Thus, we deﬁne a uniformsymbol E(h, r, t) to represent the score function ofany KEG model for evaluating the plausibility ofa triple (h, r, t). More speciﬁcally, the three mosttypical score function patterns are given as follows:(1) The translation-based score function, suchas TransE (Bordes et al., 2013):E(h, r, t) =h + r t(3) ∥ −∥where h, r and t denote the embeddings of headentity h, relation r and tail entity t, respectively.(2) The rotation-based score function, such asRotatE (Sun et al., 2019):E(h, r, t) =h r t(4) ∥ ◦ −∥where ◦ indicates the hardmard product.",
+          "type": "Formula",
+          "index": 1,
+          "score": 0.9599609375,
+          "contain_formula": false,
+          "font_size": 10.607303619384766,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            314,
+            271,
+            556,
+            519
+          ],
+          "text": "(3) The tensor decomposition-based score function, such as DistMult (Yang et al., 2015):E(h, r, t) = h⊤diag(M)t(5)rwhere diag(M) represents the diagonal matrix ofrthe relation r.Link Prediction. Following most of the previousKGC models, we regard link prediction as an entityprediction task. Given a triple query with an entitymissing (h, r, ?) or (?, r, t), link prediction takesevery entity as a candidate. It calculates the scoreof each candidate triple by employing the learnedKG embeddings and the score function. Then, werank the candidate entities in light of their scoresand output the top n entities as results.",
+          "type": "Formula",
+          "index": 2,
+          "score": 0.96240234375,
+          "contain_formula": false,
+          "font_size": 10.734399795532227,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            315,
+            551,
+            555,
+            815
+          ],
+          "text": "In terms of the representation of commonsensedeﬁned in section 3.1, our approach could theoretically generate commonsense from any KG automatically as long as there exist some conceptslinked to the entities in the KG. Speciﬁcally, wedevelop an entity-to-concept converter to replacethe entities in each factual triple with corresponding concepts. Meanwhile, the relations in commonsense entail the instance-level relations in factual KGs. Take an instance in Figure 2, the factual triple (David, Nationality, U.S.A.) can betransformed to a concept-level triple (Person,.Particularly, the comNationality, Country)monsense in the individual form C1 is achieved bywiping out the reduplicated concept-level triples.Afterwards, we merge the concept-level triples thatcontain the same relation into a set to construct thecommonsense in the set form C2.",
+          "type": "Text",
+          "index": 4,
+          "score": 0.8662109375,
+          "contain_formula": false,
+          "font_size": 10.793112754821777,
+          "font_name": "NimbusRomNo9L-Regu"
+        }
+      ]
+    },
+    {
+      "page": 4,
+      "width": 621,
+      "height": 877,
+      "boxes": [
+        {
+          "bbox": [
+            316,
+            708,
+            468,
+            730
+          ],
+          "text": "3.4Traning the KGE Model",
+          "type": "Title",
+          "index": 1,
+          "score": 0.884765625,
+          "contain_formula": false,
+          "font_size": 10.909099578857422,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            67,
+            68,
+            307,
+            352
+          ],
+          "text": "Head EntityN-1 RelationTail EntityPositive atlantacitylocatedingeorgiaTriplestateSelecting cityCandidate citylocatedinstateprovinceConcepts countystatevisualizableislandsceneCommonsense C2Concept-to-EntityConcept-to-EntityHead EntitiesCorrupted Probability(Prob)Tail EntitiesCorrupted greenlandlowhightennesseeAttentive olympiavermontConceptto-Entity cambridgewashingtonConvertingzurichhighlowcalifornia. . . 1-ProbProb. . .  weightweightHighquality greenlandgreenlandcitylocatedincitylocatedinstatestategeorgiageorgiaNegative citylocatedincitylocatedinTriplesatlantaatlantastatestatetennesseetennessee. . .Figure 3: An example of generating the high-qualitynegative triples containing an N-1 relation by our designed CANS module on NELL-995.",
+          "type": "Figure",
+          "index": 3,
+          "score": 0.95849609375,
+          "contain_formula": false,
+          "font_size": 7.016597270965576,
+          "font_name": "TimesNewRomanPS-BoldMT"
+        },
+        {
+          "bbox": [
+            71,
+            367,
+            301,
+            392
+          ],
+          "text": "3.3Commonsense-Aware Negative Sampling",
+          "type": "Title",
+          "index": 4,
+          "score": 0.86572265625,
+          "contain_formula": false,
+          "font_size": 10.909099578857422,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            313,
+            73,
+            559,
+            700
+          ],
+          "text": "try to sample the triples conforming to the commonsense2 for high quality. CFor a better understanding, an example of generating high-quality negative triples with an N-1 relation is shown in Figure 3. The whole NS procedurecan be divided into two steps. Step 1: selecting thecandidate concepts with commonsense. The can C2didate head concepts city, county and island aredetermined according to commonsense and nonunique sampling. Besides, based on the uniqueness C2sampling strategy, the candidate tail concept is selected as the same concept as that stateprovinceof Georgia. Step 2: attentive concept-to-entityconverting. To reduce false-negative while ensuring the high quality of the negative triples, the corrupted entities belonging to the candidate conceptsare sampled from the following distribution:w(h′j, r, t) = 1 − p((h′j, r, t)|{(hi, ri, ti)})exp αE(h′j, r, t)= 1 −exp αE(h′, r, t)(6)�i iw(h, r, t′j) = p((h, r, t′j)(hi, ri, ti))|{}exp αE(h, r, t′j)=(7)�i exp αE(h, r, t′i)where h′i and t′i are the corrupted head and tail entities obtained by non-unique sampling and uniqueness sampling. w and p denote the weight and theprobability of the negative triple, respectively. α isthe temperature of sampling motivated by the selfadversarial sampling (Sun et al., 2019). Remarkably, considering that a triple with a higher probability is more likely to be a positive one, the weightof a negative triple containing the corrupted headentity such is deﬁned as Eq. 6 to prevent the issueof false-negative. Besides, the negative triples containing the corrupted tail entities with higher probability are endowed with higher-quality weight sincethere is no false-negative issue. Thus, both the corrupted head entity greenland and the corruptedtail entity tennessee with the high weights are selected to generate high-quality negative triples.",
+          "type": "Formula",
+          "index": 0,
+          "score": 0.95068359375,
+          "contain_formula": false,
+          "font_size": 10.38243579864502,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            315,
+            733,
+            553,
+            811
+          ],
+          "text": "Based on the negative triples obtained by CANS,we train the KGE model to learn the entity andrelation embeddings for enlarging the gap betweenthe scores of the positive and high-quality negativetriples. In this work, we employ the following loss",
+          "type": "Text",
+          "index": 2,
+          "score": 0.94775390625,
+          "contain_formula": false,
+          "font_size": 10.906533241271973,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            68,
+            395,
+            307,
+            810
+          ],
+          "text": "Intuitively, the negative triples satisfying commonsense are more challenging to distinguish from positive triples, contributing to more effective trainingsignals. Therefore, we try to sample the negativetriples that conform to the commonsense.To reduce the false-negative triples, we exploitthe characteristics of complex relations, namely1-1, 1-N, N-1, and N-N deﬁned in TransH (Wanget al., 2014) for negative sampling, where 1 impliesthat the entity is unique when given the relation andanother entity, on the contrary, N denotes that theremight be multiple entities in this case (non-uniqueentity). Based on this observation, two speciﬁcsampling strategies are proposed: (1) uniquenesssampling: in terms of corrupting a unique entitysuch as the tail entity of the N-1 relation, the corrupted triples except for the original positive oneare deﬁnitely actual negative triples. Furthermore,the corrupted entities that share at least one conceptwith the correct entity are regarded as high-qualitynegative triples, contributing to a more consistenttraining signal. (2) None-unique sampling: forcorrupting a non-unique entity such as a head entity linked by the N-1 relation, the entities belonging to the same concept(s) with the correct entityare more likely to be false-negative due to the nonuniqueness of the head entity. Thus, the weights ofthese negative triples being false-negative shouldbe as low as possible in training. Meanwhile, we",
+          "type": "Text",
+          "index": 5,
+          "score": 0.90869140625,
+          "contain_formula": false,
+          "font_size": 10.917460441589355,
+          "font_name": "NimbusRomNo9L-Regu"
+        }
+      ]
+    },
+    {
+      "page": 5,
+      "width": 621,
+      "height": 877,
+      "boxes": [
+        {
+          "bbox": [
+            313,
+            68,
+            561,
+            191
+          ],
+          "text": "Dataset#Rel#Ent#Con#Train#Valid#TestFB15K1,345 14,95189483,142 50,000 59,071FB15K23723714,50589272,115 17,535 20,466NELL-99520075,492270123,370 15,000 15,838DBpedia-24229899,744242592,654 35,851 30,000Table 1: Statistics of the experimental datasets. #Rel,#Ent, #Con represent the number of relations, entitiesand concepts of each dataset, respectively.",
+          "type": "Table",
+          "index": 0,
+          "score": 0.94580078125,
+          "contain_formula": false,
+          "font_size": 9.06945514678955,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            316,
+            204,
+            448,
+            226
+          ],
+          "text": "4.1Experiment Settings",
+          "type": "Title",
+          "index": 1,
+          "score": 0.88330078125,
+          "contain_formula": false,
+          "font_size": 10.909099578857422,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            315,
+            771,
+            553,
+            811
+          ],
+          "text": "1The codes of TransE and RotatE: https://github.com/DeepGraphLearning/KnowledgeGraphEmbedding. The codeof HAKE: https://github.com/MIRALab-USTC/KGE-HAKE.",
+          "type": "Footnote",
+          "index": 3,
+          "score": 0.8759765625,
+          "contain_formula": false,
+          "font_size": 8.578521728515625,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            71,
+            190,
+            238,
+            211
+          ],
+          "text": "3.5Multi-View Link Prediction",
+          "type": "Title",
+          "index": 5,
+          "score": 0.873046875,
+          "contain_formula": false,
+          "font_size": 10.909099578857422,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            71,
+            653,
+            230,
+            676
+          ],
+          "text": "4Experiments and Results",
+          "type": "Title",
+          "index": 7,
+          "score": 0.8818359375,
+          "contain_formula": false,
+          "font_size": 11.9552001953125,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            315,
+            227,
+            554,
+            766
+          ],
+          "text": "Datasets.Four real-world datasets containing ontological concepts are utilized for experiments, including FB15K (Bordes et al., 2013),FB15K237 (Toutanova and Chen, 2015), NELL995 (Xiong et al., 2017) and DBpedia-242. Particularly, DBpedia-242 is extracted from DBpedia (Lehmann et al., 2015) which contains totally242 concepts. The statistics of the datasets aresummarized in Table 1. Notably, the entities inFB15K and FB15K237 always belong to more thanone concept while each entity in NELL-995 andDBpedia-242 has only one concept.Baselines. We compare our CAKE model withthree state-of-the-art KGE models, includingTransE (Bordes et al., 2013), RotatE (Sun et al.,2019) and HAKE (Zhang et al., 2020). Meanwhile,these baselines are also the basic models integratedwith our framework. It is unnecessary to use manybaselines since the focus of this work is to observethe impact of applying our CAKE framework tooriginal KGE models instead of defeating all theSOTA models. We provide the results of baselinesby running their source codes1 with the suggestedparameters. Note that all the existing type-basedand ontology-based models are not chosen as baselines since they are speciﬁc to a few KGs and cannot work on most of the datasets in our experiment.Implementation Details. Each complex relationis labelled in the same way as in TransH (Wanget al., 2014). We use Adam optimizer for the training and tune the hyper-parameters of our model bygrid search on the validation sets. Speciﬁcally, theembedding size and the batch size are the same asthose of each basic model for a fair comparison.The negative sampling size is set as 2 for all themodels. The learning rate is chosen from 0.0001to 0.01. The margin is tuned in {9, 12, 18, 24, 30}.The sampling temperature is adjusted in {0.5, 1.0}.",
+          "type": "Text",
+          "index": 2,
+          "score": 0.955078125,
+          "contain_formula": false,
+          "font_size": 10.90893840789795,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            68,
+            70,
+            306,
+            188
+          ],
+          "text": "function as our optimization objective:L = − logσ(γ − E(h, r, t))n−�0.5[w(h′i, r, t)logσ(E(h′i, r, t) − γ)(8)i+ w(h, r, t′i)logσ(E(h, r, t′i) γ)] −in which γ is the margin. [x]+ indicates the largervalue between 0 and x. σ is the sigmoid function.",
+          "type": "Formula",
+          "index": 4,
+          "score": 0.9521484375,
+          "contain_formula": false,
+          "font_size": 8.887383460998535,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            67,
+            213,
+            308,
+            650
+          ],
+          "text": "Beneﬁting from the same relations among commonsense and facts, commonsense could directlyprovide a deﬁnite range for link prediction results.Hence we develop a novel multi-view link prediction (MVLK) mechanism in a coarse-to-ﬁneparadigm to facilitate more likely predicted results.Firstly, at the coarse prediction stage, we pick outthe candidate entities in the view of commonsense.Speciﬁcally, take a query (h, r, ?) for an example,commonsense is employed for ﬁltering the rea C1sonable concepts of the tail entity. The candidateconcept set of tail entity is deﬁned asC1t =cti(chi, r, cti)1(9) {| ∈ C}where c is the i-th concept of h, and c denoteshitithe tail concept in the commonsense (chi, r, cti).Then, the entities belonging to the concept set C1tcan be determined as the candidate entities sincethey satisfy commonsense and are more likely tobe the correct tail entities from the perspective ofcommonsense compared with other entities.Then, at the ﬁne prediction stage, we score eachcandidate entity ei derived from the coarse prediction stage in the view of fact as followingscore(ei) = E(h, r, ei)(10)where E(h, r, ei) denotes the score function employed for training the KGE model. Subsequently,the prediction results will rank the scores of candidate entities in ascending order and output theentities with higher ranks.",
+          "type": "Formula",
+          "index": 6,
+          "score": 0.9716796875,
+          "contain_formula": false,
+          "font_size": 10.362236976623535,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            69,
+            678,
+            307,
+            811
+          ],
+          "text": "In this section, we perform extensive experimentsof KGC on four widely-used KG datasets containing concepts. We ﬁrstly describe datasets, baseline models, implementation details and evaluationprotocol. Then, the effectiveness of our proposedframework CAKE and each module is demonstrated by compared with several baselines. Furthermore, we conduct further experiments, including the ablation study and the case study.",
+          "type": "Text",
+          "index": 8,
+          "score": 0.943359375,
+          "contain_formula": false,
+          "font_size": 10.947019577026367,
+          "font_name": "NimbusRomNo9L-Regu"
+        }
+      ]
+    },
+    {
+      "page": 6,
+      "width": 621,
+      "height": 877,
+      "boxes": [
+        {
+          "bbox": [
+            67,
+            62,
+            554,
+            444
+          ],
+          "text": "ModelsFB15KFB15K237MRMRRHits@10Hits@3Hits@1MRMRRHits@10Hits@3Hits@1TransE350.6260.8380.7230.4961950.2680.4540.2980.176TransE+CANS340.6710.8640.7610.5521750.2980.4900.3330.203TransE+MVLP350.6360.8390.7250.5131810.2900.4760.3230.186TransE+CAKE330.6720.8650.7610.5551750.3010.4930.3350.206RotatE350.6570.8500.7460.5372040.2690.4520.2980.179RotatE+CANS330.7020.8770.7900.5881820.2960.4860.3290.202RotatE+MVLP340.6880.8600.7680.5791880.3080.4930.3400.217RotatE+CAKE310.7050.8780.7920.5931810.3180.5110.3540.223HAKE340.6900.8720.7800.5741760.3060.4860.3370.216HAKE+CANS370.7230.8820.8080.6161740.3150.5010.3440.221HAKE+MVLP320.7290.8900.8170.6221720.3200.5080.3520.227HAKE+CAKE300.7410.8960.8250.6461700.3210.5150.3550.226ModelsDBpedia-242NELL-995MRMRRHits@10Hits@3Hits@1MRMRRHits@10Hits@3Hits@1TransE27330.2420.4680.3440.10010810.4290.5570.4770.354TransE+CANS18890.2870.5750.4270.10310220.4330.5910.4950.336TransE+MVLP8810.3220.5850.4500.1523360.5090.6170.5470.444TransE+CAKE8810.3300.5950.4580.1603170.5330.6500.5780.461RotatE19500.3740.5820.4570.24920770.4600.5530.4930.403RotatE+CANS10630.4070.5930.4760.30010970.5310.6440.5730.461RotatE+0.3930.5940.4740.2733560.5190.6280.5640.447MVLP983RotatE+CAKE10270.4230.6030.4860.3203290.5460.6600.5920.474HAKE17570.4080.5790.4630.31211570.5020.6100.5380.437HAKE+CANS11470.4270.5870.4720.34120110.5200.6400.5560.451HAKE+MVLP10830.4110.5800.4630.3194780.5100.6140.5510.444HAKE+CAKE9310.4370.5930.4810.3534330.5430.6550.5830.477Table 2: Link prediction results on four datasets. Bold numbers are the best results for each type of model.",
+          "type": "Table",
+          "index": 0,
+          "score": 0.94287109375,
+          "contain_formula": false,
+          "font_size": 8.976009368896484,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            72,
+            626,
+            208,
+            648
+          ],
+          "text": "4.2Experimental Results",
+          "type": "Title",
+          "index": 2,
+          "score": 0.884765625,
+          "contain_formula": false,
+          "font_size": 10.909099578857422,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            70,
+            459,
+            306,
+            622
+          ],
+          "text": "All the experiments are conducted in Pytorch andon GeForce GTX 2080Ti GPUs.Evaluation Protocol. Following the procedure ofMVLP in Section 3.5, we can obtain the rank ofthe correct entity for each test example. Then, theperformance of link prediction is evaluated by threecommonly-used metrics: mean rank (MR), meanreciprocal rank (MRR), and proportion of the correct entities ranked in the top n (Hits@N). All themetrics are in the ﬁltered setting by wiping out thecandidate triples already exist in the datasets.",
+          "type": "Text",
+          "index": 1,
+          "score": 0.95654296875,
+          "contain_formula": false,
+          "font_size": 10.947418212890625,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            69,
+            650,
+            307,
+            810
+          ],
+          "text": "Table 2 exhibits the evaluation results of link prediction on the four datasets. We can observe thatboth CANS and MVLP modules effectively improve the performance of each basic model on eachdataset. Moreover, the entire CAKE framework further facilitates more performance gains than eachseparate module and outperforms all the baselinesconsistently and signiﬁcantly. Compared with theperformance average of the three baseline models,our CAKE model improves MRR by 7.2%, 11.5%,16.2% and 16.7% on FB15K, FB15K237, DBpedia-",
+          "type": "Text",
+          "index": 3,
+          "score": 0.95166015625,
+          "contain_formula": false,
+          "font_size": 10.903618812561035,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            314,
+            459,
+            555,
+            810
+          ],
+          "text": "242 and NELL-995. These results demonstrate thesuperiority and effectiveness of integrating commonsense with the original KGE models.We compare our CANS module with varioustypes of NS techniques, including uniform sampling (Bordes et al., 2013), none sampling (Li et al.,2021), NSCaching (Zhang et al., 2019b), domainbased sampling (Wang et al., 2019b) and selfadversarial sampling (Sun et al., 2019). The comparison results are obtained by combining theseNS techniques with the most classical KGE modelTransE(Bordes et al., 2013).From the resultsshown in Table 3, our CANS module signiﬁcantlyoutperforms all the other NS techniques on allthe datasets. Speciﬁcally, domain-based NS, selfadversarial sampling and our CANS module consistently outperform the others due to evaluating thequality of negative triples. Furthermore, our CANSmodule performs better than domain-based NS andself-adversarial sampling since CANS could reduce false-negative. These results illustrate thesuperior ability of our CANS module to generatemore high-quality negative triples for enhancingthe performance of any KGE model.",
+          "type": "Text",
+          "index": 4,
+          "score": 0.9658203125,
+          "contain_formula": false,
+          "font_size": 10.948760032653809,
+          "font_name": "NimbusRomNo9L-Regu"
+        }
+      ]
+    },
+    {
+      "page": 7,
+      "width": 621,
+      "height": 877,
+      "boxes": [
+        {
+          "bbox": [
+            70,
+            60,
+            554,
+            308
+          ],
+          "text": "ModelsFB15KFB15K237MRMRR Hits@10 Hits@3 Hits@1MRMRR Hits@10 Hits@3 Hits@1TransE+Unifo1780.3010.5050.3390.2013610.1710.3230.1820.097TransE+NoSamp1440.3500.5780.4150.2273430.2610.4460.2970.168TransE+NSCach2090.2920.5600.3750.1445560.2050.3530.2260.131TransE+Domain350.6190.8390.7150.4891860.2830.4670.3140.190TransE+SAdv350.6260.8380.7230.4961950.2680.4540.2980.176TransE+CANS (Ours)340.6710.8640.7610.5521750.2980.4900.3330.203ModelsDBpedia-242NELL-995MRMRR Hits@10 Hits@3 Hits@1MRMRR Hits@10 Hits@3 Hits@1TransE+Unifo5750 0.1240.2620.1830.03386500.1670.3540.2190.068TransE+None2292 0.2020.3950.2470.10191720.1760.2970.2100.106TransE+NSCach5465 0.1560.3400.2120.05013967 0.1070.2050.1220.107TransE+Domain3415 0.2030.5100.3460.00913190.3810.5490.4680.271TransE+SAdv2733 0.2420.4680.3440.10010810.4290.5570.4770.354TransE+CANS (Ours) 1889 0.2870.5750.4270.10310220.4330.5910.4950.336Table 3: Comparison results of various NS techniques. Unifo, NoSamp, NSCach, Domain and SAdv denoteuniform sampling, none sampling, NSCaching, domain-based NS and self-adversarial NS strategies, respectively.",
+          "type": "Table",
+          "index": 0,
+          "score": 0.9345703125,
+          "contain_formula": false,
+          "font_size": 8.980631828308105,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            311,
+            319,
+            562,
+            517
+          ],
+          "text": "ModelsFB15K237MRMRRHits@10Hits@3Hits@1CAKE1700.3210.5150.3550.226-CRNS1860.3180.5070.3520.223-CSNS1820.3170.5090.3510.222-MVLP1740.3150.5010.3440.221ModelsNELL-995MRMRRHits@10Hits@3Hits@1CAKE4330.5430.6550.5830.477-CRNS6500.5190.6270.5640.453-CSNS4470.5290.6470.5670.463-MVLP20110.5200.6400.5560.451Table 4: Ablation study of integrating each model intothe basic model HAKE on FB15K237 and NELL-995.",
+          "type": "Table",
+          "index": 1,
+          "score": 0.94775390625,
+          "contain_formula": false,
+          "font_size": 8.997530937194824,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            315,
+            696,
+            401,
+            717
+          ],
+          "text": "5Conclusion",
+          "type": "Title",
+          "index": 3,
+          "score": 0.8857421875,
+          "contain_formula": false,
+          "font_size": 11.9552001953125,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            69,
+            316,
+            306,
+            415
+          ],
+          "text": "Query:(rockets, teamplaysinleague, ?)(rockets, teamplaysinleague, ?)Commonsense: (sportsteam, teamplaysinleague,(sportsteam, teamplaysinleague,  sportsleaguesportsleague))Top 5 Answers:nbanbancaancaawnbawnbacbacbaaccaccsportsleagueEntity Concept:Figure 4: A case study of explainable link predictionwith commonsense and entity concept on NELL-995.",
+          "type": "Figure",
+          "index": 5,
+          "score": 0.9306640625,
+          "contain_formula": false,
+          "font_size": 8.226518630981445,
+          "font_name": "TimesNewRomanPSMT"
+        },
+        {
+          "bbox": [
+            71,
+            428,
+            177,
+            449
+          ],
+          "text": "4.3Ablation Study",
+          "type": "Title",
+          "index": 6,
+          "score": 0.89501953125,
+          "contain_formula": false,
+          "font_size": 10.909099578857422,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            71,
+            727,
+            157,
+            748
+          ],
+          "text": "4.4Case Study",
+          "type": "Title",
+          "index": 8,
+          "score": 0.8896484375,
+          "contain_formula": false,
+          "font_size": 10.909099578857422,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            315,
+            531,
+            554,
+            693
+          ],
+          "text": "995, our model could output the answer entities and provide the corresponding entity concepts together with the commonsense speciﬁcto the query.We can observe that all the top5 entities including the correct entity nba belong to the concept sportsleague which satisﬁesthe commonsense (rockets, teamplaysinleague,sportsleague). More interestingly, the commonsense and the entity concepts could explain the rationality of the predicted answer entities to enhancethe users’ credibility of the answers.",
+          "type": "Text",
+          "index": 2,
+          "score": 0.955078125,
+          "contain_formula": false,
+          "font_size": 10.938491821289062,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            315,
+            720,
+            553,
+            812
+          ],
+          "text": "In this paper, we propose a novel and scalablecommonsense-aware knowledge embedding framework, which could automatically generate commonsense from KGs with entity concepts for the KGCtask. We exploit the generated commonsense toproduce effective and high-quality negative triples.",
+          "type": "Text",
+          "index": 4,
+          "score": 0.9365234375,
+          "contain_formula": false,
+          "font_size": 10.924032211303711,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            69,
+            451,
+            307,
+            723
+          ],
+          "text": "We verify the effectiveness of each contributionvia integrating the whole framework CAKE andthe following ablated models into the basic modelHAKE: (1) neglecting the characteristics of complex relations in CANS (-CRNS), (2) removing thecommonsense in CANS while retaining the characteristics of complex relations (-CSNS), and (3)omitting the commonsense-view prediction fromMVLP (-MVLP). The results in Table 4 demonstrate that our whole model CAKE performs betterthan all the ablated models on each dataset. It illustrates that introducing commonsense and the characteristics of complex relations both make sensein the NS process for generating more effectivenegative triples. Besides, MVLP facilitates linkprediction performance beneﬁted from determiningthe reasonable candidate entities by prior commonsense. In general, each contribution plays a pivotalrole in our approach.",
+          "type": "Text",
+          "index": 7,
+          "score": 0.96337890625,
+          "contain_formula": false,
+          "font_size": 10.941399574279785,
+          "font_name": "NimbusRomNo9L-Regu"
+        },
+        {
+          "bbox": [
+            70,
+            749,
+            307,
+            810
+          ],
+          "text": "We provide the case study of explainable linkprediction with commonsense as shown in Figure 4. Given a query with the tail entity missing (rockets, teamplaysinleague, ?) on NELL-",
+          "type": "Text",
+          "index": 9,
+          "score": 0.91845703125,
+          "contain_formula": false,
+          "font_size": 10.976943969726562,
+          "font_name": "NimbusRomNo9L-Regu"
+        }
+      ]
+    },
+    {
+      "page": 8,
+      "width": 621,
+      "height": 877,
+      "boxes": [
+        {
+          "bbox": [
+            313,
+            69,
+            557,
+            811
+          ],
+          "text": "L. Ji, Y. Wang, B. Shi, D. Zhang, Z. Wang, and J. Yan.2019. Microsoft concept graph: Mining semanticconcepts for short text understanding., 1:262–294. Data IntelligenceNi Lao, Tom Mitchell, and William W. Cohen. 2011.Random walk inference and learning in a large scaleknowledge base. In Proceedings of the 2011 Conference on Empirical Methods in Natural LanguageProcessing, pages 529–539.Jens Lehmann, Robert Isele, Max Jakob, Anja Jentzsch,Dimitris Kontokostas, Pablo N. Mendes, SebastianHellmann, Mohamed Morsey, Patrick van Kleef,Soren Auer, and Christian Bizer. 2015. Dbpedia-alarge-scale, multilingual knowledge base extractedfrom wikipedia. Semantic Web, 6(2):167–195.Zelong Li, Jianchao Ji, Zuohui Fu, Yingqiang Ge,Shuyuan Xu, Chong Chen, and Yongfeng Zhang.In2021. Efﬁcient non-sampling knowledge graph embedding. Proceedings of the Web Conference2021, page 1727–1736.Xi Victoria Lin, Richard Socher, and Caiming Xiong.2018. Multi-hop knowledge graph reasoning withreward shaping. In Proceedings of the 2018 Conference on Empirical Methods in Natural LanguageProcessing, pages 3243–3253.Weiyu Liu, Angel Daruna, Zsolt Kira, and Sonia Chernova. 2020. Path ranking with attention to type hierarchies. In Proceedings of the Thirty-Fourth AAAIConference on Artiﬁcial Intelligence, pages 2893–2900.ChristianMeilicke,MelisachewWudageChekol,Daniel Rufﬁnelli, and Heiner Stuckenschmidt. 2019.Anytime bottom-up rule learning for knowledgegraph completion.In Proceedings of the TwentyEighth International Joint Conference on ArtiﬁcialIntelligence, pages 3137–3143.T. Mitchell, W. Cohen, E. Hruschka, and et al. 2018.Never-ending learning.Communications of theACM, 61(5):103–115.Maximilian Nickel, Volker Tresp, and Hans-PeterKriegel. 2011.A three-way model for collectivelearning on multi-relational data.In Proceedingsof the 28th International Conference on MachineLearning, page 809–816.Nazneen Fatema Rajani, Bryan McCann, CaimingXiong, and Richard Socher. 2019.Explain yourself! leveraging language models for commonsensereasoning. In Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics,pages 4932–4942.Ali Sadeghian, Mohammadreza Armandpour, PatrickDing, and Daisy Zhe Wang. 2019. Drum: End-toend differentiable rule mining on knowledge graphs.In Proceedings of the Thirty-third Conference onNeural Information Processing Systems.",
+          "type": "Reference",
+          "index": 0,
+          "score": 0.962890625,
+          "contain_formula": false,
+          "font_size": 9.962599754333496,
+          "font_name": "NimbusRomNo9L-ReguItal"
+        },
+        {
+          "bbox": [
+            69,
+            251,
+            140,
+            270
+          ],
+          "text": "References",
+          "type": "Title",
+          "index": 2,
+          "score": 0.7919921875,
+          "contain_formula": false,
+          "font_size": 11.9552001953125,
+          "font_name": "NimbusRomNo9L-Medi"
+        },
+        {
+          "bbox": [
+            67,
+            272,
+            307,
+            810
+          ],
+          "text": "Kurt Bollacker, Georg Gottlob, and Sergio Flesca.2008.Freebase: a collaboratively created graphdatabase for structuring human knowledge. In Proceedings of the 2008 ACM SIGMOD InternationalConference on Management of Data, pages 1247–1250.Antoine Bordes, Nicolas Usunier, Alberto GarciaDuran, Jason Weston, and Oksana Yakhnenko.2013. Translating embeddings for modeling multirelational data.In Processing of the 27th Annual, pages 2787–2795.Conference on Neural Information Processing SystemsLiwei Cai and William Yang Wang. 2018. KBGAN:Adversarial learning for knowledge graph embeddings. In Proceedings of the 2018 Conference of theNorth American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long Papers), pages 1470–1480.KrompaßDenis, Stephan Baier, and Volker Tresp. 2015.Type-constrained representation learning in knowledge graphs.In Proceedings of the 14th International Conference on The Semantic Web - ISWC2015 - Volume 9366, page 640–655.Xin Dong, Evgeniy Gabrilovich, Geremy Heitz, WilkoHorn, Ni Lao, Kevin Murphy, Thomas Strohmann,Shaohua Sun, and Wei Zhang. 2014.Knowledgevault: A web-scale approach to probabilistic knowledge fusion.In Proceedings of the 20th ACMSIGKDD International Conference on KnowledgeDiscovery and Data Mining, page 601–610.Luis Galárraga, Christina Teﬂioudi, Katja Hose, andFabian Suchanek. 2015. Fast rule mining in ontological knowledge bases with amie+. The VLDB Journal, 24(6):707–730.Junheng Hao, Muhao Chen, Wenchao Yu, Yizhou Sun,and Wei Wang. 2019.Universal representationlearning of knowledge bases by jointly embeddinginstances and ontological concepts. In Proceedingsof the 25th ACM SIGKDD International Conferenceon Knowledge Discovery and Data Mining, pages1709–1719.",
+          "type": "Reference",
+          "index": 3,
+          "score": 0.97314453125,
+          "contain_formula": false,
+          "font_size": 9.962599754333496,
+          "font_name": "NimbusRomNo9L-ReguItal"
+        },
+        {
+          "bbox": [
+            69,
+            71,
+            307,
+            236
+          ],
+          "text": "On the other hand, we design a multi-view linkprediction technique in a coarse-to-ﬁne paradigmto ﬁlter the candidate entities in the view of commonsense and output the predicted results fromthe perspective of fact. The experiments on fourdatasets demonstrate the effectiveness and the scalability of our proposed framework and each modulecompared with the state-of-the-art baselines. Furthermore, our framework could explain link prediction results and potentially assemble new KGEmodels to improve their performance.",
+          "type": "Text",
+          "index": 1,
+          "score": 0.95458984375,
+          "contain_formula": false,
+          "font_size": 10.946897506713867,
+          "font_name": "NimbusRomNo9L-Regu"
+        }
+      ]
+    },
+    {
+      "page": 9,
+      "width": 621,
+      "height": 877,
+      "boxes": [
+        {
+          "bbox": [
+            313,
+            68,
+            559,
+            804
+          ],
+          "text": "Zhen Wang, Jianwen Zhang, Jianlin Feng, and ZhengChen. 2014.Knowledge graph embedding bytranslating on hyperplanes. In Proceedings of theAAAI Conference on Artiﬁcial Intelligence, page1112–1119.Ruobing Xie, Zhiyuan Liu, Jia Jia, Huanbo Luan, andMaosong Sun. 2016a.Representation learning ofknowledge graphs with entity descriptions. In Proceedings of the Thirtieth AAAI Conference on Artiﬁcial Intelligence, page 2659–2665.Ruobing Xie,Zhiyuan Liu,Huanbo Luan,andMaosong Sun. 2017. Image-embodied knowledgerepresentation learning.In Proceedings of theTwenty-Sixth International Joint Conference on Artiﬁcial Intelligence, pages 3140–3146.Ruobing Xie, Zhiyuan Liu, and Maosong Sun. 2016b.Representation learning of knowledge graphs withhierarchical types.In Proceedings of the TwentyFifth International Joint Conference on Artiﬁcial Intelligence, page 2965–2971.Wenhan Xiong, Thien Hoang, , and William YangWang. 2017. DeepPath: A reinforcement learningmethod for knowledge graph reasoning. In Proceedings of the 2017 Conference on Empirical Methodsin Natural Language Processing, pages 564–573.Bishan Yang, Wen tau Yih, Xiaodong He, JianfengGao, and Li Deng. 2015. Embedding entities andrelations for learning and inference in knowledgebases. In Proceedings of International Conferenceon Learning Representations.Shiquan Yang, Rui Zhang, and Sarah Erfani. 2020.GraphDialog: Integrating graph knowledge into endto-end task-oriented dialogue systems. In Proceedings of the 2020 Conference on Empirical Methodsin Natural Language Processing (EMNLP), pages1878–1888.Shuai Zhang, Yi Tay, Lina Yao, and Qi Liu. 2019a.Quaternion knowledge graph embeddings. In Proceedings of the 33rd Conference on Neural Information Processing Systems, pages 2731–2741.Yongqi Zhang, Quanming Yao, Yingxia Shao, and LeiChen. 2019b. Nscaching: Simple and efﬁcient negative sampling for knowledge graph embedding. In2019 IEEE 35th International Conference on DataEngineering, pages 614–625.Zhanqiu Zhang, Jianyu Cai, Yongdong Zhang, and JieWang. 2020. Learning hierarchy-aware knowledgegraph embeddings for link prediction. In Proceedings of the AAAI Conference on Artiﬁcial Intelligence, pages 3065–3072.Hao Zhou, Tom Young, Minlie Huang, Haizhou Zhao,and Xiaoyan Zhu. 2018. Commonsense knowledgeaware conversation generation with graph attention.In Proceedings of the Twenty-Seventh InternationalJoint Conference on Artiﬁcial Intelligence, pages4623–4629.",
+          "type": "Reference",
+          "index": 0,
+          "score": 0.95361328125,
+          "contain_formula": false,
+          "font_size": 9.962599754333496,
+          "font_name": "NimbusRomNo9L-ReguItal"
+        },
+        {
+          "bbox": [
+            67,
+            68,
+            308,
+            811
+          ],
+          "text": "Maarten Sap, Ronan Le Bras, Emily Allaway, Chandra Bhagavatula, Nicholas Lourie, Hannah Rashkin,Brendan Roof, Noah A. Smith, and Yejin Choi. 2019.ATOMIC: an atlas of machine commonsense for ifthen reasoning. In Proceedings of the Thirty-ThirdAAAI Conference on Artiﬁcial Intelligence, pages3027–3035.Apoorv Saxena, Aditay Tripathi, and Partha Talukdar. 2020. Improving multi-hop question answeringover knowledge graphs using knowledge base embeddings. In Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics,pages 4498–4507.Robyn Speer, Joshua Chin, and Catherine Havasi. 2017.ConceptNet 5.5: An open multilingual graph of general knowledge. In Proceedings of the Thirty-FirstAAAI Conference on Artiﬁcial Intelligence, page4444–4451.Yawei Sun,Lingling Zhang,Gong Cheng,andYuzhong Qu. 2020.SPARQA: skeleton-based semantic parsing for complex questions over knowledge bases.In Proceedings of the Thirty-FourthAAAI Conference on Artiﬁcial Intelligence, pages8952–8959.Zhiqing Sun, Zhi-Hong Deng, Jian-Yun Nie, and JianTang. 2019. RotatE: Knowledge graph embeddingby relational rotation in complex space. In Proceedings of International Conference on Learning Representations.Kristina Toutanova and Danqi Chen. 2015. Observedversus latent features for knowledge base and textinference. In Proceedings of the 3rd Workshop onContinuous Vector Space Models and their Compositionality, pages 57–66.Théo Trouillon, Johannes Welbl, Sebastian Riedel, ÉricGaussier, and Guillaume Bouchard. 2016. Complexembeddings for simple link prediction. In Proceedings of the 33rd International Conference on Machine Learning, page 2071–2080.Hongwei Wang, Fuzheng Zhang, Mengdi Zhang, JureLeskovec, Miao Zhao, Wenjie Li, and ZhongyuanWang. 2019a. Knowledge-aware graph neural networks with label smoothness regularization for recommender systems.In Proceedings of the 25thACM SIGKDD International Conference on Knowledge Discovery and Data Mining, page 968–977.XiangWang,TinglinHuang,DingxianWang,Yancheng Yuan, Zhenguang Liu, Xiangnan He,and Tat-Seng Chua. 2021. Learning intents behindinteractions with knowledge graph for recommendation. In Proceedings of the Web Conference, pages878–887.Y. Wang, Y. Liu, H. Zhang, and H. Xie. 2019b.Leveraging lexical semantic information for learning concept-based multiple embedding representations for knowledge graph completion. In APWebWAIM, pages 382–397.",
+          "type": "Reference",
+          "index": 1,
+          "score": 0.95654296875,
+          "contain_formula": false,
+          "font_size": 9.962599754333496,
+          "font_name": "NimbusRomNo9L-ReguItal"
+        }
+      ]
+    }
+  ],
+  "msg": "ok"
+}
